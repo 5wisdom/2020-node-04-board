@@ -1,11 +1,11 @@
 // node_nodules
-require('dotenv').config();
+require('dotenv').config(); //환경변수에 불러옴
 const express = require('express');
 const app = express();
 const path = require('path');
 
 //modules 모듈들 불러오는곳
-const {pool} = require('./modules/mysql-conn');
+//const {pool} = require('./modules/mysql-conn');
 const boardRouter = require('./routes/board');
 const galleryRouter = require('./routes/gallery');
 
@@ -17,12 +17,11 @@ app.listen(process.env.PORT, () => {
 //Initialize 최초세팅
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, './views'));
-app.locals.pretty = true;
+app.locals.pretty = true; //클라이언트한테 보낼때 정리할게요
 
 // middleware req가 지나가면서 json형식으로 변경해줌
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
-
+app.use(express.urlencoded({extended: false})); //포스트방식을 읽어주게함
 
 //routers 라우터세팅
 app.use('/', express.static(path.join(__dirname, './public')));
