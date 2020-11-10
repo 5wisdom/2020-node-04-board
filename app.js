@@ -15,7 +15,7 @@ const { upload } = require('./modules/multer-conn');
 
 //modules 모듈들 불러오는곳
 //const {pool} = require('./modules/mysql-conn');
-//const logger = require('./modules/morgan-conn'); //미들웨어
+const logger = require('./modules/morgan-conn'); //미들웨어
 const boardRouter = require('./routes/board');
 const galleryRouter = require('./routes/gallery');
 
@@ -32,8 +32,12 @@ app.locals.pretty = true; //클라이언트한테 보낼때 정리할게요
 // middleware req가 지나가면서 json형식으로 변경해줌
 
 //app.use(logger); //미들웨어 그냥 이렇게 쓰면됨 안에 req,res,next를 다 가지고 있음 안에서 req,res하다가 next로 다음으로 보냄
-//app.use(logger, express.json(), express.urlencoded({extended: false})); ////미들웨어 한방에 쓸수도 있음
-app.use(express.json());
+app.use(logger, express.json(), express.urlencoded({extended: false})); ////미들웨어 한방에 쓸수도 있음
+app.use((req,res,next) => {
+  express.text = "aaa"
+  express.json()(req, res, next)
+})
+//app.use(express.json());
 app.use(express.urlencoded({extended: false})); //포스트방식을 읽어주게함
 
 //routers 라우터세팅, 라우터가 있는 미들웨어
@@ -49,7 +53,8 @@ app.get('/test/upload', (req, res, next) => {
 
 // test/save로 들어오면 multer 미들웨어를 태우고 다음을 실행함
 app.post('/test/save', upload.single("upfile"), (req, res, next) => {
-	res.json(req.body);
+ res.json(req.file);
+  
 });
 
 

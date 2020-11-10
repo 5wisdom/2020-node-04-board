@@ -1,9 +1,12 @@
 const express = require('express');
 const { readyException } = require('jquery');
 const moment = require('moment');
+const path = require('path');
 const router = express.Router();
 const { pool } = require('../modules/mysql-conn'); //필요한것 구조분해할당으로 받음
-const { alert } = require('../modules/uitl');
+const { alert } = require('../modules/util');
+const {upload, imgExt} = require('../modules/multer-conn');
+
 
 router.get(['/', '/list'], async (req, res, next) => { //board or board/list 로 오면
 	const pug = {title: '게시판 리스트', js: 'board', css: 'board'};
@@ -11,11 +14,11 @@ router.get(['/', '/list'], async (req, res, next) => { //board or board/list 로
 		const sql = 'SELECT * FROM board ORDER BY id DESC';
 		const connect = await pool.getConnection();
 		const rs = await connect.query(sql);
+		connect.release();
 		pug.lists = rs[0];
 		pug.lists.forEach((v) => {
 			v.wdate = moment(v.wdate).format('YYYY년 MM월 DD일');
 		});
-		connect.release();
 		res.render('./board/list.pug', pug);
 	}
 	catch(e) {
@@ -28,10 +31,23 @@ router.get('/write', (req, res, next) => {
 	res.render('./board/write.pug', pug);
 });
 
-router.post('/save', async (req, res, next) => {
+router.post('/save', upload.single('upfile'), async (req, res, next) => {
 	const { title, content, writer } = req.body;
 	var values = [title, writer, content];
 	var sql = 'INSERT INTO board SET title=?, writer=?, content=?';
+
+
+	if(req.allowUpload ){ //req.allowUpload 허락되든 안되든 무조건 파일을 올리는 행위를 했음
+		if(req.allowUpload.allow){//파일올림
+			sql += ', savefile=?, realfile=?';
+			values.push(req.file.filename);
+			values.push(req.file.originalname);
+		}
+		else{//파일안올림
+			res.send(alert(`${req.allowUpload.ext}은(는) 업로드 할 수 없습니다.`, '/board'))
+		}
+	}
+
 	try {
 		const connect = await pool.getConnection();
 		const rs = await connect.query(sql, values);
@@ -51,10 +67,15 @@ router.get('/view/:id', async(req, res) => {
 		const connect = await pool.getConnection();
 		const rs = await connect.query(sql, values);
     //res.json(rs); //여기에다가 디버그찍음
-    
 		connect.release();
 		pug.list = rs[0][0];
 		pug.list.wdate = moment(pug.list.wdate).format('YYYY-MM-DD HH:mm:ss');
+		if(pug.list.savefile){
+			var ext = path.extname(pug.list.savefile).toLowerCase().replace(".", "");
+			if(imgExt.indexOf(ext) > -1){
+				pug.list.imgSrc = `/storage/${pug.list.savefile.substr(0, 6)}/${pug.list.savefile}`;
+			}
+		}
 		res.render('./board/view.pug', pug);
 	}
 	catch(e) {
