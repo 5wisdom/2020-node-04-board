@@ -4,7 +4,8 @@ const express = require('express');
 const { readyException } = require('jquery');
 const app = express();
 const path = require('path');
-const { upload } = require('./modules/multer-conn');
+const createError = require('http-errors');
+//const { upload } = require('./modules/multer-conn');
 //const upload = multer({ dest: path.join(__dirname, './uploads/') });
 //const { v4: uuidv4 } = require('uuid');
 //var uid = uuidv4();
@@ -47,15 +48,15 @@ app.use('/board', boardRouter);
 app.use('/gallery', galleryRouter);
 
 
-app.get('/test/upload', (req, res, next) => {
-	res.render('test/upload');
-});
+// app.get('/test/upload', (req, res, next) => {
+// 	res.render('test/upload');
+// });
 
-// test/save로 들어오면 multer 미들웨어를 태우고 다음을 실행함
-app.post('/test/save', upload.single("upfile"), (req, res, next) => {
- res.json(req.file);
+// // test/save로 들어오면 multer 미들웨어를 태우고 다음을 실행함
+// app.post('/test/save', upload.single("upfile"), (req, res, next) => {
+//  res.json(req.file);
   
-});
+// });
 
 
 
@@ -63,10 +64,11 @@ app.post('/test/save', upload.single("upfile"), (req, res, next) => {
 //예외처리 error
 //404에러
 app.use((req, res, next) => {
-  const err = new Error();
-  err.code = 404;
-  err.msg = '요청하신 페이지를 찾을 수 없습니다.';
-  next(err);
+  // const err = new Error();
+  // err.code = 404;
+  // err.msg = '요청하신 페이지를 찾을 수 없습니다.';
+  // next(err);
+  next(createError(404, '요청하신 페이지를 찾을 수 없습니다.')); // 이한줄로 에러를 생성
 });
 
 //모든에러는 여기로 수렴됨
@@ -74,7 +76,9 @@ app.use((req, res, next) => {
 //500에러
 app.use((err, req, res, next) => {
   console.log(err); //enoent는 pug에러로 console로 err 잡을수 있음
-  const code = err.code || 500;
-  const msg = err.msg || '서버 내부 오류입니다. 관리자에게 문의하세요.'
+  let code = err.status || 500;
+  let message = err.status == 404 ? '페이지를 팢을 수 없습니다.' : '서버 내부 오류입니다. 관리자에게 문의하세요';
+  let msg = process.env.SERVICE !=='production'? err.message || message : message;
+  
   res.render('./error.pug', {code, msg});
 });

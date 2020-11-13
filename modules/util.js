@@ -1,3 +1,5 @@
+const path = require('path');
+
 const alert = (msg, loc=null) => {
 	var html = `<script>alert('${msg}');`;
 	if(loc) html += `location.href='${loc}'`;
@@ -5,6 +7,10 @@ const alert = (msg, loc=null) => {
 	return html;
 }
 
+const uploadFolder = (filename) => {
+	fs.removeSync(path.join(__dirname, '../uploads', filename.substr(0,6), filename));
+}
 
-module.exports = {alert}; 
+
+module.exports = {alert, uploadFolder}; 
 //객체형태로 보내주면 필요한 것만 구조분해할당으로 가져올수 있음
