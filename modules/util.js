@@ -8,9 +8,17 @@ const alert = (msg, loc=null) => {
 }
 
 const uploadFolder = (filename) => {
-	fs.removeSync(path.join(__dirname, '../uploads', filename.substr(0,6), filename));
+	return path.join(__dirname, '../uploads', filename.substr(0, 6), filename);
 }
 
+const imgFolder = (filename) => {
+	return path.join('/storage', filename.substr(0, 6), filename); //uploads를 숨겨버림
+}
 
-module.exports = {alert, uploadFolder}; 
+const extGen = (filename, mode='L') => {
+	let ext = path.extname(filename).replace(".", "");
+	return mode == 'U' ? ext.toUpperCase() : ext.toLowerCase(); 
+}
+
+module.exports = { alert, uploadFolder, imgFolder, extGen };
 //객체형태로 보내주면 필요한 것만 구조분해할당으로 가져올수 있음

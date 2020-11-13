@@ -30,12 +30,14 @@ return result; //result = {err: null, folder: '경로'}
 
   const fileFilter = (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase().replace(".", ""); //ext:확장자 패스확장자를 가져다가 소문자로 만들고 점을 가져다가 없애버림
-    if(allowExt.indexOf(ext) > -1) { //인덱스가 존재한다면
-      req.allowUpload = {allow: true, ext};
+    if(allowExt.includes(ext)) { //인덱스가 존재한다면
+      req.allow = true;
+      req.ext = ext;
       cb(null, true);
     }  
     else {
-      req.allowUpload = {allow: false, ext};
+      req.allow = false;
+      req.ext = ext;
       cb(null, false)
     }
   }
