@@ -17,9 +17,11 @@ const pool = mysql.createPool({
 // file = {filename: '201113-.jpg', originalname: 'abc.jpg', size: 1234} //req.file
 // key = id값
 
-const sqlGen = (table, obj) => { //객체쏜것을 여기서 받음
+//null 은 값이 비어있음 undefinded는 변수 선언하고 값을 안넣어줌
+//Nan :not a number라는 타입
+const sqlGen = async(table, obj) => { //객체쏜것을 여기서 받음
   let {mode=null, field=[], data={}, file=null, id=null, desc=null} = obj;
-	let sql=null, values=[];
+	let sql=null, values=[], connect=null, rs=null;
 	let temp = Object.entries(data).filter(v => field.includes(v[0]));
     //field정보 //entries는 오브젝트를 깨서 값들을 key value를 배열로 넣어준다.//포함하고 있니? indexof[0]> -1 과 같다
 
@@ -54,10 +56,11 @@ const sqlGen = (table, obj) => { //객체쏜것을 여기서 받음
 	}
   sql = sql.substr(0, sql.length - 1); //전체길이에서 제일 뒤에 , 만 
   
-	if(mode == 'I', mode == 'U') sql += ` WHERE id=${id}`;
-	return { sql, values }
-
-  //return { sql, values }
+  if(mode == 'I', mode == 'U') sql += ` WHERE id=${id}`;
+  connect = await pool.getConnection();
+  rs = await connect.query( sql, values );
+  connect.release();
+  return rs;
 }
 
 
